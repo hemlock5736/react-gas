@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="height: 100%; width: 100%">
+      <iframe
+        id="iframe"
+        frameborder="0"
+        style="height: 100%; width: 100%; position: absolute"
+      ></iframe>
+    </div>
+    <script src="https://unpkg.com/gas-client@1.1.1/dist/index.js"></script>
+    <script>
+      const src = "http://localhost:5173";
+
+      const iframe = document.querySelector("#iframe");
+      iframe.src = src;
+      const { serverFunctions } = new window.GASClient.GASClient();
+
+      const handleRequest = (event) => {
+        const request = event.data;
+        const { type, functionName, id, args } = request;
+
+        if (type !== "REQUEST") return;
+
+        serverFunctions[functionName](...args)
+          .then((response) => {
+            iframe.contentWindow.postMessage(
+              { type: "RESPONSE", id, status: "SUCCESS", response },
+              src,
+            );
+          })
+          .catch((err) => {
+            iframe.contentWindow.postMessage(
+              {
+                type: "RESPONSE",
+                id,
+                status: "ERROR",
+                response: err,
+              },
+              src,
+            );
+          });
+      };
+      window.addEventListener("message", handleRequest, false);
+    </script>
+  </body>
+</html>
