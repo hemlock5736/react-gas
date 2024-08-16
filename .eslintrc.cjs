@@ -8,7 +8,7 @@ module.exports = {
   ],
   ignorePatterns: ["dist", ".eslintrc.cjs"],
   parser: "@typescript-eslint/parser",
-  plugins: ["react-refresh", "unused-imports"],
+  plugins: ["react-refresh", "unused-imports", "simple-import-sort", "import"],
   rules: {
     "react-refresh/only-export-components": [
       "warn",
@@ -25,5 +25,19 @@ module.exports = {
         argsIgnorePattern: "^_",
       },
     ],
+    "simple-import-sort/imports": [
+      "error",
+      {
+        groups: [["^\\u0000", "^@?\\w", "^[^.]", "^\\.", "^.+\\.s?css$"]],
+      },
+    ],
+    "simple-import-sort/exports": "error",
+    "import/first": "error",
+    "import/newline-after-import": "error",
+    "import/no-duplicates": "error",
+  },
+  parserOptions: {
+    sourceType: "module",
+    ecmaVersion: "latest",
   },
 };
