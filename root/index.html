@@ -31,30 +31,52 @@
       iframe.src = src;
       const { serverFunctions } = new window.GASClient.GASClient();
 
+      const postMessage = (message) => {
+        iframe.contentWindow.postMessage(message, src);
+      };
+
       const handleRequest = (event) => {
         const request = event.data;
         const { type, functionName, id, args } = request;
 
-        if (type !== "REQUEST") return;
-
-        serverFunctions[functionName](...args)
-          .then((response) => {
-            iframe.contentWindow.postMessage(
-              { type: "RESPONSE", id, status: "SUCCESS", response },
-              src,
-            );
-          })
-          .catch((err) => {
-            iframe.contentWindow.postMessage(
-              {
-                type: "RESPONSE",
+        switch (type) {
+          case "REQUEST":
+            serverFunctions[functionName](...args)
+              .then((response) => {
+                postMessage({
+                  type: "RESPONSE",
+                  id,
+                  status: "SUCCESS",
+                  response,
+                });
+              })
+              .catch((err) => {
+                postMessage({
+                  type: "RESPONSE",
+                  id,
+                  status: "ERROR",
+                  response: err,
+                });
+              });
+            break;
+          case "REQUEST_GS":
+            if (args.length === 0) {
+              google.script[functionName[0]][functionName[1]]((response) => {
+                postMessage({
+                  type: "RESPONSE_GS",
+                  id,
+                  response,
+                });
+              });
+            } else {
+              google.script[functionName[0]][functionName[1]](...args);
+              postMessage({
+                type: "RESPONSE_GS",
                 id,
-                status: "ERROR",
-                response: err,
-              },
-              src,
-            );
-          });
+                response: undefined,
+              });
+            }
+        }
       };
       window.addEventListener("message", handleRequest, false);
     </script>
