@@ -3,9 +3,39 @@ import { defineConfig } from "vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react(), viteSingleFile()],
-  build: {
-    outDir: "dist/src",
-  },
+const serverConfig = () =>
+  defineConfig({
+    plugins: [react()],
+  });
+
+const buildDevlopmentConfig = () =>
+  defineConfig({
+    plugins: [react(), viteSingleFile()],
+    root: "root/",
+    build: {
+      outDir: "../dist/src",
+      emptyOutDir: true,
+    },
+  });
+
+const buildProductionConfig = () =>
+  defineConfig({
+    plugins: [react(), viteSingleFile()],
+    build: {
+      outDir: "dist/src",
+    },
+  });
+
+export default defineConfig(({ command, mode }) => {
+  if (command === "serve") {
+    return serverConfig();
+  }
+  if (command === "build") {
+    if (mode === "development") {
+      return buildDevlopmentConfig();
+    } else if (mode === "production") {
+      return buildProductionConfig();
+    }
+  }
+  return {};
 });
